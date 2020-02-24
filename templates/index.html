@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>01</title>
+</head>
+<body>
+<video id="player" controls autoplay></video>
+<button id="capture">Capture</button>
+<canvas id="snapshot" width=320 height=240></canvas>
+<img id="img">
+<script>
+    var player = document.getElementById('player');
+    var snapshotCanvas = document.getElementById('snapshot');
+    var captureButton = document.getElementById('capture');
+    var img = document.getElementById('img');
+    var context = snapshot.getContext('2d');
+    var handleSuccess = function (stream) {
+        // Attach the video stream to the video element and autoplay.
+        player.srcObject = stream;
+    };
+
+    captureButton.addEventListener('click', function () {
+        // Draw the video frame to the canvas.
+        context.drawImage(player, 0, 0, snapshotCanvas.width,
+            snapshotCanvas.height);
+        base64Image = snapshotCanvas.toDataURL('image/png');
+        uploadImage(base64Image);
+
+    });
+    navigator.mediaDevices.getUserMedia({video: true})
+        .then(handleSuccess);
+
+    function uploadImage(base64Image) {
+        base64Image = atob(base64Image.split(',')[1])
+        const array = []
+        for (let i = 0; i < base64Image.length; i++) {
+            array.push(base64Image.charCodeAt(i))
+        }
+        const file = new Blob([new Uint8Array(array)], {type: 'image/png'})
+
+        // 將file 加至 formData
+        const formData = new FormData()
+        formData.append('image', file, 'test.png')
+
+        // send ajax request
+        fetch('/image', {
+            method: 'POST',
+            body: formData
+        }).then(res => res.text()).then(
+            res => $('#img').attr('src', 'data:image/png;base64,'+res)
+        )
+
+        /*$.ajax({
+            url: '/image',
+            type: 'POST',
+            data: formData,
+            dataType: "json",
+            processData : false,
+            contentType : false,
+            success:function(res){
+                alert('e')
+                console.log(res)
+            },
+            error:function(res){
+                console.log(res)
+            }
+        })*/
+
+    }
+
+</script>
+<script src="static/jquery-3.4.1.min.js"></script>
+</body>
+</html>
