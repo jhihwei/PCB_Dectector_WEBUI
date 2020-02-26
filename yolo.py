@@ -115,6 +115,7 @@ class YOLO(object):
     def detect_image(self, image):
         import cv2
         import tensorflow as tf
+        info = {}
         graph = tf.get_default_graph()
         with graph.as_default():
             start = timer()
@@ -130,6 +131,7 @@ class YOLO(object):
             image_data = np.array(boxed_image, dtype='float32')
 
             print(image_data.shape)
+            info.update({"image_shape":image_data.shape})
             image_data /= 255.
             image_data = np.expand_dims(image_data, 0)  # Add batch dimension.
 
@@ -138,9 +140,10 @@ class YOLO(object):
                 feed_dict={
                     self.yolo_model.input: image_data,
                     self.input_image_shape: [image.size[1], image.size[0]],
-                    K.learning_phase(): 0
+                    # K.learning_phase(): 0
                 })
             print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
+            info.update({"boxes":len(out_boxes)})
             # font = ImageFont.load_default()
 
             font = ImageFont.truetype(
@@ -193,8 +196,11 @@ class YOLO(object):
                 del draw
 
             end = timer()
-            print('執行時間:',end - start)
-            return image
+            exec_time = end - start
+            print('執行時間:',exec_time)
+
+            info.update({"time":exec_time})
+            return image, info
 
     def close_session(self):
         self.sess.close()

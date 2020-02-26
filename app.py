@@ -1,10 +1,12 @@
 import re
 import numpy
 import cv2
-from flask import Flask, render_template, request, send_file, make_response
+from flask import Flask, render_template, request, send_file, make_response, jsonify
 import base64
 from PIL import Image
 import time
+import uuid
+import json
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
@@ -28,11 +30,13 @@ yolo = YOLO(model_path='yolo3-pcb1000-Missing.h5',
 
 def detect(file:str):
     path = file
-    print(path)
+    file_name = path[file.index('/')+1:]
+    file_detected = "images/detected_"+file_name
     image = Image.open(path)
-    r_image = yolo.detect_image(image)
+    r_image, info = yolo.detect_image(image)
     # 顯示圖片, r_image.show()
-    r_image.save("detected.png")
+    r_image.save(file_detected)
+    return file_detected, info
 
 @app.route('/', methods=['GET'])
 def index():
@@ -41,16 +45,19 @@ def index():
 
 @app.route('/image', methods=['POST'])
 def upload_image():
+    data = {}
+    file_name = "images/"+uuid.uuid4().urn[12:]+".jpg"
     npimg = numpy.fromfile(request.files['image'], numpy.uint8)
     # convert numpy array to image
     img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
-    cv2.imwrite('output.png', img)
-    # time.sleep(5)
+    cv2.imwrite(file_name, img)
     keras.backend.clear_session()
-    detect('output.png')
-    with open('output.png', 'rb') as f:
+    file_detected, info = detect(file_name)
+    with open(file_detected, 'rb') as f:
         image_string = base64.b64encode(f.read())
-    return image_string
+    data['image_string'] = str(image_string,encoding='utf-8')
+    data['info'] = info
+    return json.dumps(data,ensure_ascii=False)
 
 if __name__ == '__main__':
-    app.run(debug=False, threaded = False)
+    app.run(debug=True, threaded = True)
