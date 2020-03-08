@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/UiApp01.iml" filepath="$PROJECT_DIR$/.idea/UiApp01.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/PCB_Dectector_WEBUI.iml" filepath="$PROJECT_DIR$/.idea/PCB_Dectector_WEBUI.iml" />
     </modules>
   </component>
 </project>
