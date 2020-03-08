@@ -7,6 +7,9 @@ from PIL import Image
 import time
 import uuid
 import json
+from os import listdir
+from os.path import isfile, join
+import importlib
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
@@ -38,9 +41,16 @@ def detect(file:str):
     r_image.save(file_detected)
     return file_detected, info
 
+def get_sample_images_list():
+    sample_path = 'static/samples'
+    files = listdir(sample_path)
+    files = [f for f in files if isfile(join(sample_path, f))]
+    return files
+
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    samples = get_sample_images_list()
+    return render_template('index.html', samples=samples)
 
 @app.route('/test', methods=['GET'])
 def index_test():
@@ -55,7 +65,7 @@ def upload_image():
     # convert numpy array to image
     img = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
     cv2.imwrite(file_name, img)
-    keras.backend.clear_session()
+    # keras.backend.clear_session()
     file_detected, info = detect(file_name)
     with open(file_detected, 'rb') as f:
         image_string = base64.b64encode(f.read())
@@ -63,5 +73,16 @@ def upload_image():
     data['info'] = info
     return json.dumps(data,ensure_ascii=False)
 
+@app.route('/images', methods=['POST'])
+def upload_local_image():
+    file_name = 'static/samples/'+request.form['sample']
+    file_detected, info = detect(file_name)
+    with open(file_detected, 'rb') as f:
+        image_string = base64.b64encode(f.read())
+    data = {}
+    data['image_string'] = str(image_string,encoding='utf-8')
+    data['info'] = info
+    return json.dumps(data,ensure_ascii=False)
+
 if __name__ == '__main__':
-    app.run(debug=True, threaded = True)
+    app.run(debug=True, threaded = True, port=5002)

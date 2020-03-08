@@ -10,64 +10,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Noto+Sans+TC&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Noto Sans TC';
-            line-height: 1.8;
-            color: #f5f6f7;
-        }
-
-        p {
-            font-size: 16px;
-        }
-
-        .margin {
-            margin-bottom: 45px;
-        }
-
-        .bg-1 {
-            background-color: #1abc9c;
-            /* Green */
-            color: #ffffff;
-        }
-
-        .bg-2 {
-            background-color: #474e5d;
-            /* Dark Blue */
-            color: #ffffff;
-        }
-
-        .bg-3 {
-            background-color: #ffffff;
-            /* White */
-            color: #555555;
-        }
-
-        .bg-4 {
-            background-color: #2f2f2f;
-            /* Black Gray */
-            color: #fff;
-        }
-
-        .container-fluid {
-            padding-top: 70px;
-            padding-bottom: 70px;
-        }
-
-        .navbar {
-            padding-top: 15px;
-            padding-bottom: 15px;
-            border: 0;
-            border-radius: 0;
-            margin-bottom: 0;
-            font-size: 12px;
-            letter-spacing: 5px;
-        }
-
-        .navbar-nav li a:hover {
-            color: #1abc9c !important;
-        }
-    </style>
+    <link href="static/style.css" rel="stylesheet">
 </head>
 
 <body>
@@ -115,6 +58,9 @@
             <button id="change_cam" class="btn btn-default btn-lg">
                 <span class="glyphicon glyphicon-refresh"></span> 切換
             </button>
+            <button id="get_images_list" class="btn btn-default btn-lg" data-toggle="modal" data-target="#images_list">
+                <span class="glyphicon glyphicon-equalizer"></span> 樣本
+            </button>
         </div>
         <div id="block_2" class="col-md-4">
             <h3 class="margin">影像取樣</h3>
@@ -122,7 +68,7 @@
             <canvas id="snapshot" class="rounded float-left"></canvas>
             <hr>
         </div>
-        <div id="block_3" class="col-md-4" style="border-left:solid 2px white">
+        <div id="result_block" class="col-md-4" style="border-left:solid 2px white">
             <h3 class="margin">檢測結果</h3>
             <p></p>
             <img id="img" class="float-left" style="border: none;">
@@ -153,6 +99,29 @@
     </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="images_list" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel" style="color:black">試驗樣本</h5>
+            </div>
+            <div class="modal-body">
+                <ul>
+                    {% for sample in samples %}
+                        <li><a name="sample" data-name="{{ sample }}" class="sample_{{ sample }}"><img
+                                style="width:200px" src="/static/samples/{{ sample }}" class="img-thumbnail img-fluid"></a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Footer -->
 <footer class="container-fluid bg-4 text-center">
     <p>Powered by AI01 Group one</p>
@@ -198,24 +167,29 @@
         uploadImage(base64Image);
 
     });
-
     navigator.mediaDevices.getUserMedia({
         video: true
-        //video: { facingMode: { exact: "environment" } }
     })
         .then(handleSuccess);
 
+    function fillResultBlock(res) {
+        $('#img').attr('src', 'data:image/png;base64,' + res['image_string']);
+        $('#shape').text(res['info']['image_shape']);
+        $('#boxes').text(res['info']['boxes']);
+        $('#time').text(res['info']['time']);
+    }
+
     function uploadImage(base64Image) {
         base64Image = atob(base64Image.split(',')[1])
-        const array = []
+        const array = [];
         for (let i = 0; i < base64Image.length; i++) {
             array.push(base64Image.charCodeAt(i))
         }
         const file = new Blob([new Uint8Array(array)], {
             type: 'image/png'
-        })
+        });
 
-        const formData = new FormData()
+        const formData = new FormData();
         formData.append('image', file, 'test.png')
 
         fetch('/image', {
@@ -223,15 +197,24 @@
             body: formData
         }).then(res => res.text()).then(function (res) {
                 res = JSON.parse(res);
-                $('#img').attr('src', 'data:image/png;base64,' + res['image_string']);
-                $('#shape').text(res['info']['image_shape'])
-                $('#boxes').text(res['info']['boxes'])
-                $('#time').text(res['info']['time'])
-
+                fillResultBlock(res);
             }
-            //res => $('#img').attr('src', 'data:image/png;base64,' + res['image_string'])
-        )
+        );
     }
+
+    //-----------------取得樣本清單----------------------------//
+    $('a[name="sample"]').on('click', function (elem) {
+        const formData = new FormData()
+        formData.append('sample', $(this).data('name'));
+        fetch('/images', {
+            method: 'POST',
+            body: formData,
+        }).then(res => res.text()).then(function (res) {
+            res = JSON.parse(res);
+            fillResultBlock(res);
+        });
+    });
+    //-----------------取得樣本清單---END---------------------//
 </script>
 </body>
 
