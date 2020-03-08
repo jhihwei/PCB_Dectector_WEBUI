@@ -42,6 +42,10 @@ def detect(file:str):
 def index():
     return render_template('index.html')
 
+@app.route('/test', methods=['GET'])
+def index_test():
+    return render_template('index_test.html')
+
 
 @app.route('/image', methods=['POST'])
 def upload_image():

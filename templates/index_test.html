@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <title>AI01 Group One</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+TC&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC';
+            line-height: 1.8;
+            color: #f5f6f7;
+        }
+
+        p {
+            font-size: 16px;
+        }
+
+        .margin {
+            margin-bottom: 45px;
+        }
+
+        .bg-1 {
+            background-color: #1abc9c;
+            /* Green */
+            color: #ffffff;
+        }
+
+        .bg-2 {
+            background-color: #474e5d;
+            /* Dark Blue */
+            color: #ffffff;
+        }
+
+        .bg-3 {
+            background-color: #ffffff;
+            /* White */
+            color: #555555;
+        }
+
+        .bg-4 {
+            background-color: #2f2f2f;
+            /* Black Gray */
+            color: #fff;
+        }
+
+        .container-fluid {
+            padding-top: 70px;
+            padding-bottom: 70px;
+        }
+
+        .navbar {
+            padding-top: 15px;
+            padding-bottom: 15px;
+            border: 0;
+            border-radius: 0;
+            margin-bottom: 0;
+            font-size: 12px;
+            letter-spacing: 5px;
+        }
+
+        .navbar-nav li a:hover {
+            color: #1abc9c !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-default" hidden>
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#"></a>
+            </div>
+            <div class="collapse navbar-collapse" id="myNavbar">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="#"></a></li>
+                    <li><a href="#"></a></li>
+                    <li><a href="#"></a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- First Container -->
+    <div class="container-fluid bg-1 text-center">
+        <h3 class="margin"></h3>
+        <h3>AI01 第一組</h3>
+        <p>此為展示用WEB介面，因此採用HTTPS通訊，所以反應較慢；正式環境採用Socket通訊</p>
+    </div>
+
+    <!-- Second Container -->
+
+    <!-- Third Container (Grid) -->
+    <div class="container-fluid bg-2 text-center">
+        <h3 class="margin">PCB瑕疵檢測</h3><br>
+        <div class="row">
+            <div id="block_1" class="col-md-4" style="border-right:solid 2px white">
+                <h3 class="margin">影像偵測</h3>
+                <p></p>
+                <video id="player" controls autoplay style="width: 70%;height:auto" class="rounded float-left"></video>
+                <hr>
+                <button id="capture" class="btn btn-default btn-lg">
+                    <span class="glyphicon glyphicon-search"></span> 取樣
+                </button>
+                <button id="change_cam" class="btn btn-default btn-lg">
+                    <span class="glyphicon glyphicon-search"></span> 切換
+                </button>
+            </div>
+            <div id="block_2" class="col-md-4">
+                <h3 class="margin">影像取樣</h3>
+                <p></p>
+                <canvas id="snapshot" class="rounded float-left"></canvas>
+                <hr>
+            </div>
+            <div id="block_3" class="col-md-4" style="border-left:solid 2px white">
+                <h3 class="margin">檢測結果</h3>
+                <p></p>
+                <img id="img" class="float-left" style="border: none;">
+                <hr>
+                <div class="row" style="text-align: left!important;">
+                    <div class="col">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Shape</th>
+                                    <th scope="col">Boxes</th>
+                                    <th scope="col">Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row"></th>
+                                    <td id="shape"></td>
+                                    <td id="boxes"></td>
+                                    <td id="time"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="container-fluid bg-4 text-center">
+        <p>Powered by AI01 Group one</p>
+    </footer>
+    <script>
+        $(document).ready(function () {});
+        var player = document.getElementById('player');
+        var snapshotCanvas = document.getElementById('snapshot');
+        var captureButton = document.getElementById('capture');
+        var changeButton = document.getElementById('change_cam');
+        var img = document.getElementById('img');
+        var context = snapshot.getContext('2d');
+        var handleSuccess = function (stream) {
+            player.srcObject = stream;
+        };
+        $('#img').css('width', snapshotCanvas.width);
+        $('#img').css('height', snapshotCanvas.height * 1.4);
+        $('#snapshot').css('width', snapshotCanvas.width);
+        $('#snapshot').css('height', snapshotCanvas.height * 1.4);
+        var cam_flag = true;
+        changeButton.addEventListener('click', function () {
+            if (cam_flag) {
+                cam_flag = false;
+                navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: {
+                                exact: "environment"
+                            }
+                        }
+                    })
+                    .then(handleSuccess);
+            }else{
+                cam_flag = true;
+                navigator.mediaDevices.getUserMedia({
+                    video: true
+                })
+                .then(handleSuccess);
+            }
+
+        });
+
+        captureButton.addEventListener('click', function () {
+            context.drawImage(player, 0, 0, snapshotCanvas.width,
+                snapshotCanvas.height);
+            base64Image = snapshotCanvas.toDataURL('image/png');
+            uploadImage(base64Image);
+
+        });
+
+        navigator.mediaDevices.getUserMedia({
+                video: true
+                //video: { facingMode: { exact: "environment" } } 
+            })
+            .then(handleSuccess);
+
+        function uploadImage(base64Image) {
+            base64Image = atob(base64Image.split(',')[1])
+            const array = []
+            for (let i = 0; i < base64Image.length; i++) {
+                array.push(base64Image.charCodeAt(i))
+            }
+            const file = new Blob([new Uint8Array(array)], {
+                type: 'image/png'
+            })
+
+            const formData = new FormData()
+            formData.append('image', file, 'test.png')
+
+            fetch('/image', {
+                method: 'POST',
+                body: formData
+            }).then(res => res.text()).then(function (res) {
+                    res = JSON.parse(res);
+                    $('#img').attr('src', 'data:image/png;base64,' + res['image_string']);
+                    $('#shape').text(res['info']['image_shape'])
+                    $('#boxes').text(res['info']['boxes'])
+                    $('#time').text(res['info']['time'])
+
+                }
+                //res => $('#img').attr('src', 'data:image/png;base64,' + res['image_string'])
+            )
+        }
+    </script>
+</body>
+
+</html>
