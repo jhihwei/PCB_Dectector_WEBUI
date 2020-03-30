@@ -1,2 +1,4 @@
-## PCB 瑕疵檢測
-### 使用WEB介面做為展示
+# PCB 瑕疵檢測
+## 系統環境
+檢測核心：YOLO V3
+WEB SERVER：Flask
